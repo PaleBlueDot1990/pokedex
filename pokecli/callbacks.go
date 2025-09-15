@@ -204,3 +204,42 @@ func CommandCatch(
 	}
 	return nil 
 }
+
+func CommandInspect(
+	cfg *pokecfg.Config,
+	cache *pokecache.Cache,
+	pokemons map[string]pokecfg.Pokemon,
+	args []string,
+) error {
+	cache.Mu.Lock()
+	defer cache.Mu.Unlock()
+
+	pokemonName := args[0]
+	_, ok := pokemons[pokemonName]
+	if !ok {
+		fmt.Printf("you have not caught %s!\n", pokemonName)
+		return nil 
+	}
+
+	pokemon := pokemons[pokemonName]
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+
+	fmt.Printf("Abilities:\n")
+	for _, ability := range pokemon.Abilities {
+		fmt.Printf("\t- %s\n", ability.Ability.Name)
+	}
+
+	fmt.Printf("Stats:\n")
+	for _, stats := range pokemon.Stats {
+		fmt.Printf("\t- %s: %d\n", stats.Stat.Name, stats.BaseStat)
+	}
+
+	fmt.Printf("Types:\n")
+	for _, typ := range pokemon.Types {
+		fmt.Printf("\t- %s\n", typ.Type.Name)
+	}
+
+	return nil 
+}

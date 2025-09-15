@@ -54,5 +54,11 @@ func InitCliCommands() {
 		description: "Catch the provided pokemon",
 		Callback:    CommandCatch,
 	}
+
+	CliCommands["inspect"] = CliCommand {
+		name:        "inspect",
+		description: "Print the details of provided pokemon",
+		Callback:    CommandInspect,
+	}
 }
 
