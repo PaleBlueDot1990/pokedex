@@ -243,3 +243,16 @@ func CommandInspect(
 
 	return nil 
 }
+
+func CommandPokedex(
+	cfg *pokecfg.Config,
+	cache *pokecache.Cache,
+	pokemons map[string]pokecfg.Pokemon,
+	args []string,
+) error {
+	fmt.Printf("Your Pokedex:\n")
+	for _, pokemon := range pokemons {
+		fmt.Printf("\t- %s\n", pokemon.Name)
+	}
+	return nil 
+}
