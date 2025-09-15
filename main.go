@@ -34,7 +34,8 @@ func main() {
 			continue 
 		}
 		
-		err := command.Callback(cfg, cache)
+		args := cleanedUserPrompt[1:]
+		err := command.Callback(cfg, cache, args)
 		if err != nil {
 			fmt.Printf("Something wrong happened- %v\n", err)
 		}

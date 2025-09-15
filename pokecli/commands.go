@@ -1,14 +1,14 @@
 package pokecli
 
 import (
-	"github.com/PaleBlueDot1990/pokedex/pokecli/pokecache"
-	pokecfg "github.com/PaleBlueDot1990/pokedex/pokecli/pokecfg"
+	pokecache "github.com/PaleBlueDot1990/pokedex/pokecli/pokecache"
+	pokecfg   "github.com/PaleBlueDot1990/pokedex/pokecli/pokecfg"
 )
 
 type CliCommand struct {
 	name        string 
 	description string 
-	Callback    func(*pokecfg.Config, *pokecache.Cache) error 
+	Callback    func(*pokecfg.Config, *pokecache.Cache, []string) error 
 }
 
 var CliCommands = map[string]CliCommand{}
@@ -36,6 +36,12 @@ func InitCliCommands() {
 		name:        "mapb",
 		description: "Display name of the previous 20 location areas",
 		Callback:    CommandMapBack,
+	}
+
+	CliCommands["explore"] = CliCommand {
+		name:        "explore",
+		description: "Display pokemons located in the provided area",
+		Callback:    CommandExplore,
 	}
 }
 
