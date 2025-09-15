@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -12,13 +13,23 @@ import (
 	pokecfg "github.com/PaleBlueDot1990/pokedex/pokecli/pokecfg"
 )
 
-func CommandExit(cfg *pokecfg.Config, cache *pokecache.Cache, args []string) error {
+func CommandExit(
+	cfg *pokecfg.Config, 
+	cache *pokecache.Cache,
+	pokemons map[string]pokecfg.Pokemon, 
+	args []string,
+) error {
 	fmt.Printf("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func CommandHelp(cfg *pokecfg.Config, cache *pokecache.Cache, args []string) error {
+func CommandHelp(
+	cfg *pokecfg.Config, 
+	cache *pokecache.Cache, 
+	pokemons map[string]pokecfg.Pokemon, 
+	args []string,
+) error {
 	fmt.Printf("Welcome to the Pokedex!\n")
 	fmt.Printf("Usage:\n\n")
 	
@@ -29,15 +40,30 @@ func CommandHelp(cfg *pokecfg.Config, cache *pokecache.Cache, args []string) err
 	return nil 
 }
 
-func CommandMapNext(cfg *pokecfg.Config, cache *pokecache.Cache, args []string) error {
-	return CommandMap(cfg, cache, cfg.NextURL)
+func CommandMapNext(
+	cfg *pokecfg.Config, 
+	cache *pokecache.Cache, 
+	pokemons map[string]pokecfg.Pokemon, 
+	args []string,
+) error {
+	return CommandMap(cfg, cache, pokemons, cfg.NextURL)
 }
 
-func CommandMapBack(cfg *pokecfg.Config, cache *pokecache.Cache, args []string) error {
-	return CommandMap(cfg, cache, cfg.PreviousURL)
+func CommandMapBack(
+	cfg *pokecfg.Config, 
+	cache *pokecache.Cache, 
+	pokemons map[string]pokecfg.Pokemon, 
+	args []string,
+) error {
+	return CommandMap(cfg, cache, pokemons, cfg.PreviousURL)
 }
 
-func CommandMap(cfg *pokecfg.Config, cache *pokecache.Cache, url string) error {
+func CommandMap(
+	cfg *pokecfg.Config, 
+	cache *pokecache.Cache,
+	pokemons map[string]pokecfg.Pokemon, 
+	url string,
+) error {
 	cache.Mu.Lock()
 	defer cache.Mu.Unlock()
 
@@ -81,7 +107,12 @@ func CommandMap(cfg *pokecfg.Config, cache *pokecache.Cache, url string) error {
 	return nil 
 }
 
-func CommandExplore(cfg *pokecfg.Config, cache *pokecache.Cache, args []string) error {
+func CommandExplore(
+	cfg *pokecfg.Config, 
+	cache *pokecache.Cache, 
+	pokemons map[string]pokecfg.Pokemon,
+	args []string,
+) error {
 	cache.Mu.Lock()
 	defer cache.Mu.Unlock()
 
@@ -123,6 +154,53 @@ func CommandExplore(cfg *pokecfg.Config, cache *pokecache.Cache, args []string) 
 	fmt.Printf("Found Pokemon:\n")
 	for _, encounter := range encounters.PokemonEncounters {
 		fmt.Printf("- %s\n", encounter.Pokemon.Name)
+	}
+	return nil 
+}
+
+func CommandCatch(
+	cfg *pokecfg.Config, 
+	cache *pokecache.Cache, 
+	pokemons map[string]pokecfg.Pokemon,
+	args []string,
+) error {
+	cache.Mu.Lock()
+	defer cache.Mu.Unlock()
+
+	pokemonName := args[0]
+	_, ok := pokemons[pokemonName]
+	if ok {
+		fmt.Printf("%s is already caught!\n", pokemonName)
+		return nil 
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	url := pokecfg.PokemonBaseURL + pokemonName + "/"
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return err 
+	}
+
+	val, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		return err 
+	}
+
+	pokemon := &pokecfg.Pokemon{}
+	err = json.Unmarshal(val, pokemon)
+	if err != nil {
+		return err
+	}
+
+	baseExperience := pokemon.BaseExperience % 10 
+	threshold := rand.Intn(10)
+	if baseExperience >= threshold {
+		pokemons[pokemonName] = *pokemon
+		fmt.Printf("%s was caught!\n", pokemonName)
+	} else {
+		fmt.Printf("%s escaped!\n", pokemonName)
 	}
 	return nil 
 }

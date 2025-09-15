@@ -15,6 +15,7 @@ func main() {
 	pokecli.InitCliCommands()
 	cfg := pokecfg.InitConfig()
 	cache := pokecache.NewCache(5 * time.Second)
+	pokemons := make(map[string]pokecfg.Pokemon)
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -35,7 +36,7 @@ func main() {
 		}
 		
 		args := cleanedUserPrompt[1:]
-		err := command.Callback(cfg, cache, args)
+		err := command.Callback(cfg, cache, pokemons, args)
 		if err != nil {
 			fmt.Printf("Something wrong happened- %v\n", err)
 		}
